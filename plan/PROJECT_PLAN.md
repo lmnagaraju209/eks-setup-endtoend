@@ -4,8 +4,10 @@
 
 This document outlines the complete project plan for setting up a production-ready Amazon EKS (Elastic Kubernetes Service) cluster with full CI/CD pipeline, GitOps deployment, monitoring, and security on your AWS account.
 
-**Project Duration**: 4-5 weeks  
+**Project Duration**: 4-5 weeks (recommended) | 3 weeks (optimized) | 2-3 weeks (aggressive)  
 **Delivery**: Production-ready EKS cluster with automated deployments
+
+*See TIMELINE_OPTIMIZATION.md for timeline options and trade-offs*
 
 ---
 
