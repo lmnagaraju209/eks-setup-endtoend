@@ -6,24 +6,25 @@ I get asked about this constantly. Let me break down the real numbers and what y
 
 ## The Numbers
 
-### Indian Development Team
+### Indian Development Team (Outsourced to India)
 
-**Hourly Rates**:
-- Senior Kubernetes/AWS engineer: $30-$60/hour
-- Mid-level developer: $20-$40/hour  
-- Junior developer: $10-$25/hour
+**Actual Indian Hourly Rates** (what you'd pay if outsourced to India):
+- Senior Kubernetes/AWS engineer: ₹2,000 - ₹5,000/hour
+- Mid-level developer: ₹1,500 - ₹3,000/hour
+- Junior developer: ₹800 - ₹2,000/hour
 
-**For this project** (2-3 developers):
-- **Direct cost**: $20,000-$40,000
+**For this project** (2-3 developers working from India):
+- **Direct cost**: ₹15L - ₹30L (225-285 hours × average ₹1,500-₹2,500/hour)
 - **Timeline**: 6-8 weeks (often longer)
 - **Team composition**: Usually 1 senior + 1-2 mid-level
+- **Daily rates**: ₹40,000 - ₹1L per developer per day
 
 ### US-Based (Me)
 
-**Hourly Rate**: $150-$200/hour
+**Hourly Rate**: $150-$200/hour (₹12,450 - ₹16,600/hour at 83 INR/USD)
 
 **For this project**:
-- **Direct cost**: $45,000-$55,000 (fixed price)
+- **Direct cost**: $45,000-$55,000 (₹37.35L - ₹45.65L) fixed price
 - **Timeline**: 4-5 weeks
 - **Team**: Just me (17 years experience)
 
@@ -32,7 +33,7 @@ I get asked about this constantly. Let me break down the real numbers and what y
 ## The Real Cost Comparison
 
 ### Upfront Savings with Indian Team
-**$10,000-$25,000 cheaper** on paper.
+**₹5L - ₹15L cheaper** on paper (₹20L-₹40L vs ₹37L-₹46L).
 
 ### Hidden Costs (Indian Team)
 
@@ -67,17 +68,17 @@ I get asked about this constantly. Let me break down the real numbers and what y
 - Delays cost money (opportunity cost)
 - **Cost impact**: Depends on your situation
 
-### Total Real Cost (Indian Team)
+### Total Real Cost (Indian Team - Outsourced to India)
 
-**Best case**: $25,000-$35,000 (if everything goes smoothly)  
-**Realistic**: $30,000-$50,000 (with overhead and rework)  
-**Worst case**: $40,000-$60,000+ (if things go sideways)
+**Best case**: ₹20L - ₹25L if everything goes smoothly  
+**Realistic**: ₹25L - ₹35L with overhead and rework  
+**Worst case**: ₹35L - ₹45L+ if things go sideways
 
 **Timeline**: 6-8 weeks (often 8-10)
 
 ### My Cost
 
-**Fixed**: $45,000-$55,000  
+**Fixed**: $45,000-$55,000 (₹37.35L - ₹45.65L)  
 **Timeline**: 4-5 weeks (guaranteed)
 
 ---
@@ -130,17 +131,17 @@ I get asked about this constantly. Let me break down the real numbers and what y
 
 ## The Math
 
-**Indian team**: $30,000-$50,000 over 6-8 weeks  
-**Me**: $45,000-$55,000 over 4-5 weeks
+**Indian team** (outsourced to India): ₹25L - ₹35L over 6-8 weeks  
+**Me** (US-based): ₹37L - ₹46L over 4-5 weeks
 
-**Difference**: $10,000-$25,000 more, but:
+**Difference**: ₹5L - ₹15L more, but:
 - 2-3 weeks faster (what's that worth to you?)
 - Less management overhead (your time)
 - Higher quality (less rework)
 - Fixed price (no surprises)
 - Direct communication (no delays)
 
-**ROI**: If getting to market 2-3 weeks earlier is worth $10k-$25k, I'm the better choice. If budget is tight and timeline isn't critical, Indian team might work.
+**ROI**: If getting to market 2-3 weeks earlier is worth ₹5L - ₹15L, I'm the better choice. If budget is tight and timeline isn't critical, Indian team might work.
 
 ---
 
@@ -174,8 +175,8 @@ The ones that don't:
 ## Hybrid Option
 
 If budget is tight, we could do:
-- **Phase 1 (Infrastructure)**: With me ($7,500-$9,000) - critical, needs expertise
-- **Phase 2 (Application)**: With Indian team ($4,000-$6,000) - more straightforward
+- **Phase 1 (Infrastructure)**: With me ($7,500-$9,000 / ₹6.22L - ₹7.47L) - critical, needs expertise
+- **Phase 2 (Application)**: With Indian team (₹3L - ₹5L) - more straightforward
 - **Phase 3-5**: Back with me for CI/CD and GitOps
 
 This gets you the critical expertise where it matters, saves money on the more routine work.

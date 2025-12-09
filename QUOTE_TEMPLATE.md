@@ -2,7 +2,9 @@
 
 **Project**: Complete EKS setup on your AWS account  
 **Timeline**: 4-5 weeks  
-**Price**: $45,000 - $55,000 USD
+**Price**: $45,000 - $55,000 USD (₹37.35L - ₹45.65L)
+
+*Exchange rate: 1 USD = 83 INR (approximate)*
 
 ---
 
@@ -21,9 +23,9 @@ Production-ready EKS cluster with:
 
 ## AWS Costs (You Pay AWS Directly)
 
-**Development**: ~$230/month  
-**Production**: ~$644/month  
-**Total**: ~$874/month
+**Development**: ~$230/month (₹19,090/month)  
+**Production**: ~$644/month (₹53,452/month)  
+**Total**: ~$874/month (₹72,542/month)
 
 *These are ongoing infrastructure costs, separate from project fee*
 
@@ -52,8 +54,8 @@ Ready to talk? Let's schedule a call to confirm scope and timeline.
 
 ## Cost Comparison
 
-**Indian Development Team**: $20k-$40k, 6-8 weeks, time zone/communication overhead  
-**This Proposal**: $45k-$55k, 4-5 weeks, same time zone, direct communication
+**Indian Development Team** (outsourced to India): ₹20L-₹35L, 6-8 weeks, time zone/communication overhead  
+**This Proposal**: ₹37L-₹46L, 4-5 weeks, same time zone, direct communication
 
 *The "cheaper" option often costs more when you factor in timeline, management overhead, and quality. But if budget is tight, we can discuss phasing or scope reduction.*
 
