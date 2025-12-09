@@ -90,6 +90,21 @@ Or: "What's the opportunity cost? What else could your team focus on if I handle
 **Don't**: Ignore what they have  
 **Do**: "Great! Let's audit what exists. Existing infrastructure reduces Phase 1 cost. Containerized apps reduce Phase 2. I'll credit you for work already done."
 
+### "What about Indian developers? They're much cheaper."
+
+**Don't**: Badmouth offshore developers  
+**Do**: "They are cheaper - $30-$60/hour vs my $150-$200/hour. But you're looking at 6-8 weeks instead of 4-5, time zone issues, communication overhead, and often more rework. I've fixed enough offshore projects to know the real cost. If budget is tight, we can talk about phasing or reducing scope. But the cheapest option isn't always the best value."
+
+**Key points to mention**:
+- Time zone differences (10-12 hours) = slower communication
+- Communication overhead = more time, more rework
+- Timeline is longer (6-8 weeks vs 4-5)
+- Hidden costs (project management, rework, delays)
+- Quality varies - finding the right team takes time
+- Your time managing them has value too
+
+**If they're serious about offshore**: "If you go that route, make sure you have a good PM, can handle 6-8 week timeline, and budget for 20-30% overhead. I've seen it work, but it requires more management on your end."
+
 ---
 
 ## Communication Templates

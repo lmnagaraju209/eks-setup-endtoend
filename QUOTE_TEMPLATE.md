@@ -50,4 +50,13 @@ Ready to talk? Let's schedule a call to confirm scope and timeline.
 
 ---
 
+## Cost Comparison
+
+**Indian Development Team**: $20k-$40k, 6-8 weeks, time zone/communication overhead  
+**This Proposal**: $45k-$55k, 4-5 weeks, same time zone, direct communication
+
+*The "cheaper" option often costs more when you factor in timeline, management overhead, and quality. But if budget is tight, we can discuss phasing or scope reduction.*
+
+---
+
 *Quote valid 30 days. Based on standard EKS setup - custom requirements may affect pricing.*
