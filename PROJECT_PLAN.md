@@ -43,7 +43,7 @@ Run `terraform plan` religiously. Test in dev first. Have a destroy script ready
 Keep it simple. Two services minimum: API and worker. Define clear boundaries. Use async messaging if they need to talk. Draw it out - helps catch issues early.
 
 ### API Service (8-10 hours)
-Pick your stack - Node/Python/Go all work fine. Add `/health` and `/ready` endpoints immediately. Use structured logging. Dockerfile should be multi-stage and small.
+Pick your stack - Spring boot microserice. Add `/health` and `/ready` endpoints immediately. Use structured logging. Dockerfile should be multi-stage and small.
 
 ### Worker Service (6-8 hours)
 Background jobs, queue processing, whatever. Same patterns as API service. Make it idempotent.
@@ -283,4 +283,3 @@ Code review checklist. Terraform state management. K8s resource standards. Docum
 1. Verify AWS account limits
 2. Set up local dev environment
 3. Start Phase 1
-

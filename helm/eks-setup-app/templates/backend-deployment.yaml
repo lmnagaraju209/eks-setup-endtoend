@@ -1,0 +1,72 @@
+{{- if .Values.backend.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eks-setup-app.fullname" . }}-backend
+  labels:
+    {{- include "eks-setup-app.labels" . | nindent 4 }}
+    {{- include "eks-setup-app.componentLabels" (dict "component" "backend" "Release" .Release "Chart" .Chart "Values" .Values) | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "eks-setup-app.componentLabels" (dict "component" "backend" "Release" .Release "Chart" .Chart "Values" .Values) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "eks-setup-app.componentLabels" (dict "component" "backend" "Release" .Release "Chart" .Chart "Values" .Values) | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      {{- with .Values.global.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "eks-setup-app.backend.serviceAccountName" . }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.global.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.service.port }}
+          env:
+            {{- range $k, $v := .Values.backend.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+            {{- if .Values.externalSecrets.enabled }}
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.backend.targetSecretName }}
+                  key: DB_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.backend.targetSecretName }}
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.backend.targetSecretName }}
+                  key: DB_PASSWORD
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.backend.probes.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.backend.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.liveness.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.backend.probes.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.backend.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.readiness.periodSeconds }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+{{- end }}
+
+

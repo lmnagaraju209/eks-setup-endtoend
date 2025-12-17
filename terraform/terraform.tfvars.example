@@ -1,0 +1,98 @@
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Project Configuration
+project_name = "eks-setup"
+
+# VPC Configuration
+# Option 1: Use existing VPC (set use_existing_vpc = true)
+# use_existing_vpc = true
+# existing_vpc_id = "vpc-xxxxxxxxxxxxx"
+# existing_private_subnet_ids = ["subnet-xxxxxxxxxxxxx", "subnet-yyyyyyyyyyyyy"]
+# existing_public_subnet_ids = ["subnet-zzzzzzzzzzzzz", "subnet-wwwwwwwwwwwww"]  # Optional but recommended
+
+# Option 2: Create new VPC (default, set use_existing_vpc = false or omit)
+use_existing_vpc = false
+vpc_cidr = "10.0.0.0/16"
+# Using 2 AZs for cost savings (education purpose)
+# Use 3 AZs for production: ["us-east-1a", "us-east-1b", "us-east-1c"]
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+# EKS Configuration
+eks_cluster_version = "1.34"  # Latest supported Kubernetes version
+
+# Node Group Configuration (Cost-optimized for education)
+# t3.small: ~$15/month per node (education)
+# t3.medium: ~$30/month per node (production)
+node_group_instance_types = ["t3.small"]
+node_group_desired_size   = 1  # 1 node per AZ = 2 total nodes
+node_group_min_size       = 1
+node_group_max_size       = 2  # Limit max to control costs
+
+# NAT Gateway Configuration
+# Single NAT Gateway saves ~$64/month (education)
+# Multi-AZ NAT Gateways for production (set single_nat_gateway = false)
+enable_nat_gateway = true
+single_nat_gateway = true  # Cost savings: $32/month vs $96/month
+
+# Tags
+tags = {
+  Project   = "eks-setup"
+  ManagedBy = "terraform"
+  Owner     = "your-team"
+}
+
+# AWS Console Visibility (Optional)
+# Add your IAM user ARN here so AWS console can view nodes
+# Get it with: aws sts get-caller-identity --query 'Arn' --output text
+# admin_iam_user_arn = "arn:aws:iam::ACCOUNT_ID:user/your-username"
+
+# Phase 4 (CI/CD): GitHub OIDC (Recommended)
+# Used to create an IAM role that ONLY your repo can assume (no access keys needed in GitHub).
+# Example sub claim: repo:<github_org>/<github_repo>:ref:refs/heads/main
+github_org  = "your-github-org-or-username"
+github_repo = "eks-setup-endtoend"
+
+# Phase 5 (ArgoCD): install during infra provisioning
+enable_argocd         = true
+argocd_ingress_enabled = false
+# Domain ingress (ALB + ACM + Route53)
+enable_public_domain_ingress = true
+route53_zone_name            = "jumptotech.net"
+application_host             = "application.jumptotech.net"
+alb_scheme                   = "internet-facing"
+# argocd_ingress_host = "argocd.yourdomain.com"
+# argocd_ingress_class_name = "alb"
+# argocd_ingress_annotations = {
+#   "kubernetes.io/ingress.class" = "alb"
+#   "alb.ingress.kubernetes.io/scheme" = "internet-facing"
+#   "alb.ingress.kubernetes.io/target-type" = "ip"
+# }
+
+# Phase 7 (Monitoring): kube-prometheus-stack (Prometheus + Grafana + Alertmanager)
+enable_monitoring = true
+grafana_ingress_enabled = false
+# grafana_ingress_host = "grafana.yourdomain.com"
+# grafana_ingress_class_name = "alb"
+# grafana_ingress_annotations = {
+#   "kubernetes.io/ingress.class" = "alb"
+#   "alb.ingress.kubernetes.io/scheme" = "internet-facing"
+#   "alb.ingress.kubernetes.io/target-type" = "ip"
+# }
+
+# Phase 7 (Logging): Fluent Bit -> CloudWatch Logs
+enable_logging = true
+# cloudwatch_log_group_name = "/aws/eks/eks-setup/containers"
+# cloudwatch_log_retention_in_days = 14
+
+# Phase 7 (Alerting): Alertmanager -> Slack (optional)
+# alertmanager_slack_webhook_url = "https://hooks.slack.com/services/XXX/YYY/ZZZ"
+# alertmanager_slack_channel = "#alerts"
+
+# Phase 8 (Security): EKS audit logs
+enable_eks_control_plane_audit_logs = true
+
+# Phase 8 (Security): External Secrets Operator (AWS Secrets Manager)
+enable_external_secrets = true
+# external_secrets_namespace = "external-secrets"
+

@@ -1,0 +1,19 @@
+{{- if .Values.backend.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "eks-setup-app.fullname" . }}-backend
+  labels:
+    {{- include "eks-setup-app.labels" . | nindent 4 }}
+    {{- include "eks-setup-app.componentLabels" (dict "component" "backend" "Release" .Release "Chart" .Chart "Values" .Values) | nindent 4 }}
+spec:
+  type: {{ .Values.backend.service.type }}
+  selector:
+    {{- include "eks-setup-app.componentLabels" (dict "component" "backend" "Release" .Release "Chart" .Chart "Values" .Values) | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.backend.service.port }}
+      targetPort: http
+{{- end }}
+
+
