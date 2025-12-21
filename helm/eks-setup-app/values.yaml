@@ -6,7 +6,7 @@ global:
   podSecurityContext: {}
   containerSecurityContext:
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false  # Spring Boot/Tomcat needs writable /tmp
+    readOnlyRootFilesystem: false # Spring Boot/Tomcat needs writable /tmp
     capabilities:
       drop: ["ALL"]
 networkPolicy:
@@ -37,7 +37,7 @@ backend:
   enabled: true
   image:
     repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-backend"
-    tag: "98126e278a48c835486af2b7e1d6f1e7d70e47ef"
+    tag: "8df01425f53a8bf500c39e3c74433897f0afb907"
     pullPolicy: IfNotPresent
   replicaCount: 2
   serviceAccount:
@@ -86,7 +86,7 @@ frontend:
   enabled: true
   image:
     repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-frontend"
-    tag: "98126e278a48c835486af2b7e1d6f1e7d70e47ef"
+    tag: "8df01425f53a8bf500c39e3c74433897f0afb907"
     pullPolicy: IfNotPresent
   serviceAccount:
     create: true
