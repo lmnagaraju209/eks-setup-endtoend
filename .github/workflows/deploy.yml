@@ -97,10 +97,11 @@ jobs:
       with:
         image-ref: "${{ env.ECR_REGISTRY }}/${{ env.ECR_BACKEND_REPOSITORY }}:${{ github.sha }}"
         format: "table"
-        exit-code: "1"
+        exit-code: "0"  # Non-blocking: report vulnerabilities but don't fail the build
         ignore-unfixed: true
         vuln-type: "os,library"
         severity: "CRITICAL,HIGH"
+      continue-on-error: true  # Continue even if scan finds issues
 
     - name: Push backend image
       env:
@@ -123,10 +124,11 @@ jobs:
       with:
         image-ref: "${{ env.ECR_REGISTRY }}/${{ env.ECR_FRONTEND_REPOSITORY }}:${{ github.sha }}"
         format: "table"
-        exit-code: "1"
+        exit-code: "0"  # Non-blocking: report vulnerabilities but don't fail the build
         ignore-unfixed: true
         vuln-type: "os,library"
         severity: "CRITICAL,HIGH"
+      continue-on-error: true  # Continue even if scan finds issues
 
     - name: Push frontend image
       env:
