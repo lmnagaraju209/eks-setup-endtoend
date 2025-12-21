@@ -1,0 +1,24 @@
+# Sensitive tokens and credentials
+*TOKEN*
+*SECRET*
+*.token
+*.secret
+
+# Terraform state and sensitive files
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
+
+# ArgoCD token setup (contains sensitive token)
+ARGOCD_GIT_TOKEN_SETUP.md
+ARGOCD_QUICK_SETUP.md
+
+# AWS account configuration (can be committed if desired, but keeping private for now)
+# AWS_ACCOUNT_CONFIG.md
+
+# Local environment files
+.env
+.env.local
+

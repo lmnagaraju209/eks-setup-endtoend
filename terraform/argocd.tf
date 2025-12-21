@@ -184,36 +184,28 @@ resource "kubernetes_manifest" "argocd_application" {
         server    = "https://kubernetes.default.svc"
         namespace = var.argocd_application_namespace
       }
-      syncPolicy = var.argocd_application_sync_policy == "automated" ? {
-        automated = {
-          prune      = true
-          selfHeal   = true
-          allowEmpty = false
-        }
-        syncOptions = [
-          "CreateNamespace=true"
-        ]
-        retry = {
-          limit = 5
-          backoff = {
-            duration    = "5s"
-            factor      = 2
-            maxDuration = "3m"
+      syncPolicy = merge(
+        {
+          syncOptions = [
+            "CreateNamespace=true"
+          ]
+          retry = {
+            limit = 5
+            backoff = {
+              duration    = "5s"
+              factor      = 2
+              maxDuration = "3m"
+            }
           }
-        }
-      } : {
-        syncOptions = [
-          "CreateNamespace=true"
-        ]
-        retry = {
-          limit = 5
-          backoff = {
-            duration    = "5s"
-            factor      = 2
-            maxDuration = "3m"
+        },
+        var.argocd_application_sync_policy == "automated" ? {
+          automated = {
+            prune      = true
+            selfHeal   = true
+            allowEmpty = false
           }
-        }
-      }
+        } : {}
+      )
     }
   }
 

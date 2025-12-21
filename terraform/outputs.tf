@@ -182,7 +182,7 @@ output "argocd_server_port_forward" {
 
 output "argocd_admin_password" {
   description = "Initial ArgoCD admin password (if enable_argocd=true). Username is 'admin'."
-  value       = var.enable_argocd ? base64decode(data.kubernetes_secret.argocd_initial_admin[0].data["password"]) : null
+  value       = var.enable_argocd ? try(base64decode(data.kubernetes_secret.argocd_initial_admin[0].data["password"]), "Password not available yet. Run: kubectl -n ${var.argocd_namespace} get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d") : null
   sensitive   = true
 }
 

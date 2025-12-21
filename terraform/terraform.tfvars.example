@@ -60,7 +60,7 @@ argocd_ingress_enabled = false
 # Phase 5 (ArgoCD Application): GitOps - auto-deploy when Helm values change
 # Set to true to automatically create an ArgoCD Application that monitors your Git repo
 argocd_application_enabled = false
-argocd_git_repo_url        = "https://github.com/YOUR_GITHUB_ORG/YOUR_REPO_NAME.git"
+argocd_git_repo_url        = "https://github.com/lmnagaraju209/eks-setup-endtoend.git"
 argocd_application_target_revision = "main"
 argocd_application_namespace        = "default"
 argocd_application_sync_policy      = "automated"  # or "manual" for production

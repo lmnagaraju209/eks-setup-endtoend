@@ -11,7 +11,8 @@ This repo uses GitHub Actions to:
 Create these in **Repo Settings → Secrets and variables → Actions → Variables**:
 
 - `AWS_ACCOUNT_ID`: your AWS account ID (12 digits)
-- `AWS_REGION`: your AWS region (example: `us-east-1`)
+  - **For this project**: `343218219153`
+- `AWS_REGION`: your AWS region (example: `us-east-1`, `us-east-2`)
 
 **Note**: ECR repository names are hardcoded as `taskmanager-backend` and `taskmanager-frontend` (no need to set these as variables).
 
