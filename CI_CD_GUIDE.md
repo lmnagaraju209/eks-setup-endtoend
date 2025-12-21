@@ -12,8 +12,8 @@ Create these in **Repo Settings → Secrets and variables → Actions → Variab
 
 - `AWS_ACCOUNT_ID`: your AWS account ID (12 digits)
 - `AWS_REGION`: your AWS region (example: `us-east-1`)
-- `ECR_BACKEND_REPOSITORY`: ECR repo name for backend (Terraform creates `${project_name}-backend`)
-- `ECR_FRONTEND_REPOSITORY`: ECR repo name for frontend (Terraform creates `${project_name}-frontend`)
+
+**Note**: ECR repository names are hardcoded as `taskmanager-backend` and `taskmanager-frontend` (no need to set these as variables).
 
 Tip: after `terraform apply`, you can copy these from:
 
@@ -21,8 +21,6 @@ Tip: after `terraform apply`, you can copy these from:
 cd terraform
 terraform output aws_account_id
 terraform output aws_region
-terraform output ecr_backend_repository_name
-terraform output ecr_frontend_repository_name
 ```
 
 ## Required GitHub Secrets

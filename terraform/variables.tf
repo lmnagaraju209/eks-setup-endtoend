@@ -75,9 +75,9 @@ variable "vpc_cidr" {
 # 3 AZs = more reliable (better redundancy)
 # For learning, 2 is fine. For production, use 3.
 variable "availability_zones" {
-  description = "List of availability zones (2 AZs for cost savings, 3 for production). Only used if creating new VPC."
+  description = "List of availability zones (2 AZs for cost savings, 3 for production). Only used if creating new VPC. Defaults to us-east-2 zones."
   type        = list(string)
-  default     = ["us-east-1a", "us-east-1b"]
+  default     = ["us-east-2a", "us-east-2b"]
 }
 
 # Kubernetes version for the EKS cluster

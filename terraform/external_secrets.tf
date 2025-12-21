@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "external_secrets_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+      identifiers = [module.eks.oidc_provider_arn]
     }
 
     condition {
@@ -118,10 +118,11 @@ resource "helm_release" "external_secrets" {
   version    = var.external_secrets_chart_version
 
   create_namespace = false
-  atomic           = true
-  cleanup_on_fail  = true
-  wait             = true
-  timeout          = 900
+  # Non-atomic allows partial success - we can fix issues manually if needed
+  atomic          = false # Changed to false to prevent rollback on timeout
+  cleanup_on_fail = false # Keep resources even if install fails
+  wait            = true
+  timeout         = 1800 # Increased to 30 minutes for initial install
 
   values = [
     yamlencode({
@@ -133,9 +134,13 @@ resource "helm_release" "external_secrets" {
     })
   ]
 
+  # Wait for cluster, add-ons, and AWS Load Balancer Controller to be ready
   depends_on = [
     module.eks,
+    aws_eks_addon.coredns, # CoreDNS must be ready for service discovery
+    aws_eks_addon.vpc_cni, # VPC CNI must be ready for networking
     kubernetes_service_account.external_secrets,
+    helm_release.aws_load_balancer_controller,
     aws_iam_role_policy_attachment.external_secrets
   ]
 }

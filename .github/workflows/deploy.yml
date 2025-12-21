@@ -10,8 +10,9 @@ env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
   ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
-  ECR_BACKEND_REPOSITORY: ${{ vars.ECR_BACKEND_REPOSITORY }}
-  ECR_FRONTEND_REPOSITORY: ${{ vars.ECR_FRONTEND_REPOSITORY }}
+  # Hardcoded ECR repository names (created in Phase 1 Terraform)
+  ECR_BACKEND_REPOSITORY: taskmanager-backend
+  ECR_FRONTEND_REPOSITORY: taskmanager-frontend
 
 jobs:
   build-test-push:

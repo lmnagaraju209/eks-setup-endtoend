@@ -1,0 +1,97 @@
+# ArgoCD Application for TaskManager
+# This Application monitors the Git repository and automatically deploys when Helm values.yaml changes
+#
+# To apply this:
+# 1. Ensure ArgoCD is installed (via terraform apply)
+# 2. Get ArgoCD admin password: terraform output -raw argocd_admin_password
+# 3. Port-forward ArgoCD: kubectl -n argocd port-forward svc/argocd-server 8080:80
+# 4. Login to ArgoCD UI: http://localhost:8080 (admin / <password>)
+# 5. Apply this manifest: kubectl apply -f argocd-application.yaml
+#
+# Or apply via ArgoCD CLI:
+# kubectl apply -f argocd-application.yaml
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: taskmanager
+  namespace: argocd
+  # Finalizers ensure the Application resource is not deleted immediately
+  # This allows ArgoCD to clean up resources properly
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Git repository to monitor
+  project: default
+  
+  source:
+    # Your GitHub repository URL
+    # Update these values to match your repository
+    repoURL: https://github.com/YOUR_GITHUB_ORG/YOUR_REPO_NAME.git
+    targetRevision: main  # Branch to monitor
+    path: helm/eks-setup-app  # Path to Helm chart in the repo
+    helm:
+      # Helm values file (defaults to values.yaml)
+      valueFiles:
+        - values.yaml
+  
+  # Destination: where to deploy (your EKS cluster)
+  destination:
+    server: https://kubernetes.default.svc  # Same cluster where ArgoCD runs
+    namespace: default  # Namespace to deploy the application
+  
+  # Sync policy: automatic sync when Git changes are detected
+  syncPolicy:
+    automated:
+      # Automatically sync when changes are detected in Git
+      prune: true  # Delete resources that no longer exist in Git
+      selfHeal: true  # Automatically sync if cluster state drifts from Git
+      allowEmpty: false  # Don't sync if there are no resources
+    syncOptions:
+      # Create namespace if it doesn't exist
+      - CreateNamespace=true
+    # Retry configuration
+    retry:
+      limit: 5  # Retry up to 5 times on failure
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Health checks and sync status
+  # ArgoCD will show health status of the application
+  # - Healthy: All resources are in desired state
+  # - Progressing: Resources are being created/updated
+  # - Degraded: Some resources are not healthy
+  # - Suspended: Application sync is paused
+
+---
+# Optional: ArgoCD Application Set (if you want to manage multiple apps)
+# Uncomment and customize if needed
+# apiVersion: argoproj.io/v1alpha1
+# kind: ApplicationSet
+# metadata:
+#   name: taskmanager-apps
+#   namespace: argocd
+# spec:
+#   generators:
+#   - list:
+#       elements:
+#       - name: taskmanager
+#   template:
+#     metadata:
+#       name: '{{name}}'
+#     spec:
+#       project: default
+#       source:
+#         repoURL: https://github.com/YOUR_GITHUB_ORG/YOUR_REPO_NAME.git
+#         targetRevision: main
+#         path: helm/eks-setup-app
+#       destination:
+#         server: https://kubernetes.default.svc
+#         namespace: default
+#       syncPolicy:
+#         automated:
+#           prune: true
+#           selfHeal: true
+

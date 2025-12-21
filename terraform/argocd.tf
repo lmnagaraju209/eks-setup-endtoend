@@ -67,10 +67,11 @@ resource "helm_release" "argocd" {
   create_namespace = false
 
   # Make initial install more stable in fresh clusters
-  atomic          = true
-  cleanup_on_fail = true
+  # Non-atomic allows partial success - we can fix issues manually if needed
+  atomic          = false # Changed to false to prevent rollback on timeout
+  cleanup_on_fail = false # Keep resources even if install fails
   wait            = true
-  timeout         = 900
+  timeout         = 1800 # Increased to 30 minutes for initial install
 
   values = [
     yamlencode({
@@ -96,8 +97,11 @@ resource "helm_release" "argocd" {
     })
   ]
 
+  # Wait for cluster, add-ons (especially CoreDNS), and node groups to be ready
   depends_on = [
     module.eks,
+    aws_eks_addon.coredns, # CoreDNS must be ready for service discovery
+    aws_eks_addon.vpc_cni, # VPC CNI must be ready for networking
     kubernetes_namespace.argocd
   ]
 }
@@ -112,6 +116,110 @@ data "kubernetes_secret" "argocd_initial_admin" {
   }
 
   depends_on = [helm_release.argocd]
+}
+
+# ============================================================================
+# Optional: ArgoCD Application (GitOps)
+# Creates an Application that monitors Git repo and auto-deploys when Helm values change
+# ============================================================================
+
+variable "argocd_application_enabled" {
+  description = "If true, create an ArgoCD Application that monitors the Git repo and auto-deploys the Helm chart. Requires argocd_git_repo_url to be set."
+  type        = bool
+  default     = false
+}
+
+variable "argocd_git_repo_url" {
+  description = "Git repository URL for ArgoCD Application to monitor (e.g., https://github.com/user/repo.git). Required if argocd_application_enabled=true."
+  type        = string
+  default     = ""
+}
+
+variable "argocd_application_target_revision" {
+  description = "Git branch/tag/commit for ArgoCD Application to monitor (e.g., main, refs/heads/main)."
+  type        = string
+  default     = "main"
+}
+
+variable "argocd_application_namespace" {
+  description = "Kubernetes namespace where the application will be deployed (via ArgoCD Application)."
+  type        = string
+  default     = "default"
+}
+
+variable "argocd_application_sync_policy" {
+  description = "ArgoCD sync policy: 'automated' (auto-sync on Git changes) or 'manual' (requires manual sync)."
+  type        = string
+  default     = "automated"
+  validation {
+    condition     = contains(["automated", "manual"], var.argocd_application_sync_policy)
+    error_message = "argocd_application_sync_policy must be 'automated' or 'manual'."
+  }
+}
+
+resource "kubernetes_manifest" "argocd_application" {
+  count = var.enable_argocd && var.argocd_application_enabled && var.argocd_git_repo_url != "" ? 1 : 0
+
+  manifest = {
+    apiVersion = "argoproj.io/v1alpha1"
+    kind       = "Application"
+    metadata = {
+      name      = "taskmanager"
+      namespace = var.argocd_namespace
+      finalizers = [
+        "resources-finalizer.argocd.argoproj.io"
+      ]
+    }
+    spec = {
+      project = "default"
+      source = {
+        repoURL        = var.argocd_git_repo_url
+        targetRevision = var.argocd_application_target_revision
+        path           = "helm/eks-setup-app"
+        helm = {
+          valueFiles = ["values.yaml"]
+        }
+      }
+      destination = {
+        server    = "https://kubernetes.default.svc"
+        namespace = var.argocd_application_namespace
+      }
+      syncPolicy = var.argocd_application_sync_policy == "automated" ? {
+        automated = {
+          prune      = true
+          selfHeal   = true
+          allowEmpty = false
+        }
+        syncOptions = [
+          "CreateNamespace=true"
+        ]
+        retry = {
+          limit = 5
+          backoff = {
+            duration    = "5s"
+            factor      = 2
+            maxDuration = "3m"
+          }
+        }
+      } : {
+        syncOptions = [
+          "CreateNamespace=true"
+        ]
+        retry = {
+          limit = 5
+          backoff = {
+            duration    = "5s"
+            factor      = 2
+            maxDuration = "3m"
+          }
+        }
+      }
+    }
+  }
+
+  depends_on = [
+    helm_release.argocd
+  ]
 }
 
 

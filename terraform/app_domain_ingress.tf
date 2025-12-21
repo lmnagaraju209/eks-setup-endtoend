@@ -86,13 +86,8 @@ variable "aws_load_balancer_controller_chart_version" {
   default     = "1.8.2"
 }
 
-resource "kubernetes_namespace" "aws_load_balancer_controller" {
-  count = (var.enable_public_domain_ingress && var.enable_aws_load_balancer_controller) ? 1 : 0
-
-  metadata {
-    name = "kube-system"
-  }
-}
+# Note: kube-system namespace already exists in all Kubernetes clusters, so we don't create it
+# The AWS Load Balancer Controller will be installed in the existing kube-system namespace
 
 data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role" {
   count = (var.enable_public_domain_ingress && var.enable_aws_load_balancer_controller) ? 1 : 0
@@ -103,7 +98,7 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+      identifiers = [module.eks.oidc_provider_arn]
     }
 
     condition {
@@ -165,10 +160,11 @@ resource "helm_release" "aws_load_balancer_controller" {
   chart      = "aws-load-balancer-controller"
   version    = var.aws_load_balancer_controller_chart_version
 
-  atomic          = true
-  cleanup_on_fail = true
+  # Non-atomic allows partial success - we can fix issues manually if needed
+  atomic          = false # Changed to false to prevent rollback on timeout
+  cleanup_on_fail = false # Keep resources even if install fails
   wait            = true
-  timeout         = 900
+  timeout         = 1800 # Increased to 30 minutes for initial install
 
   values = [
     yamlencode({
@@ -182,7 +178,11 @@ resource "helm_release" "aws_load_balancer_controller" {
     })
   ]
 
+  # Wait for cluster and add-ons (especially CoreDNS and VPC CNI) to be ready
   depends_on = [
+    module.eks,
+    aws_eks_addon.coredns, # CoreDNS must be ready for service discovery
+    aws_eks_addon.vpc_cni, # VPC CNI must be ready for networking
     kubernetes_service_account.aws_load_balancer_controller,
     aws_iam_role_policy_attachment.aws_load_balancer_controller
   ]
@@ -318,16 +318,28 @@ resource "kubernetes_ingress_v1" "application_monitoring" {
   ]
 }
 
+# Local value to safely get ALB hostname (may be empty initially)
+locals {
+  alb_hostname = try(
+    kubernetes_ingress_v1.application_root[0].status[0].load_balancer[0].ingress[0].hostname,
+    ""
+  )
+}
+
 # Route53 CNAME (works for subdomain like application.jumptotech.net)
+# Note: Only create if ALB hostname is available (may take a few minutes)
 resource "aws_route53_record" "application_cname" {
-  count   = var.enable_public_domain_ingress ? 1 : 0
+  count   = var.enable_public_domain_ingress && local.alb_hostname != "" ? 1 : 0
   zone_id = data.aws_route53_zone.primary[0].zone_id
   name    = var.application_host
   type    = "CNAME"
   ttl     = 300
-  records = [kubernetes_ingress_v1.application_root[0].status[0].load_balancer[0].ingress[0].hostname]
+  records = [local.alb_hostname]
 
-  depends_on = [kubernetes_ingress_v1.application_root]
+  depends_on = [
+    kubernetes_ingress_v1.application_root,
+    helm_release.aws_load_balancer_controller
+  ]
 }
 
 

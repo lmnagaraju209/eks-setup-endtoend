@@ -1,0 +1,32 @@
+# Remote State Backend Configuration
+#
+# IMPORTANT: Do NOT use this file directly. Copy it to backend.tf and update values.
+#
+# After your first terraform apply, the S3 bucket and DynamoDB table will be created.
+# Then copy this file to backend.tf and update the bucket name and table name
+# to match what was created. Then run: terraform init -migrate-state
+#
+# The bucket name and table name are printed in terraform outputs after first apply.
+# Or you can get them with:
+#   terraform output terraform_state_bucket_name
+#   terraform output terraform_state_dynamodb_table
+
+terraform {
+  backend "s3" {
+    # S3 bucket name (must match terraform output terraform_state_bucket_name)
+    bucket = "your-project-name-terraform-state"
+
+    # Path to state file within the bucket
+    key = "eks-setup/terraform.tfstate"
+
+    # AWS region where the bucket is located
+    region = "us-east-2"
+
+    # DynamoDB table name for state locking (must match terraform output terraform_state_dynamodb_table)
+    dynamodb_table = "terraform-state-lock"
+
+    # Encrypt state at rest
+    encrypt = true
+  }
+}
+

@@ -1,25 +1,32 @@
 # ECR repositories for application images
+# Using hardcoded names for easier GitHub Actions configuration
 
 resource "aws_ecr_repository" "backend" {
-  name                 = "${var.project_name}-backend"
+  name                 = "taskmanager-backend"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
   }
 
-  tags = merge(var.tags, { Name = "${var.project_name}-backend" })
+  tags = merge(var.tags, { 
+    Name = "taskmanager-backend"
+    Purpose = "Backend application Docker images"
+  })
 }
 
 resource "aws_ecr_repository" "frontend" {
-  name                 = "${var.project_name}-frontend"
+  name                 = "taskmanager-frontend"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
   }
 
-  tags = merge(var.tags, { Name = "${var.project_name}-frontend" })
+  tags = merge(var.tags, { 
+    Name = "taskmanager-frontend"
+    Purpose = "Frontend application Docker images"
+  })
 }
 
 # Keep the repos from growing unbounded

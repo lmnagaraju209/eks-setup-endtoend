@@ -106,10 +106,11 @@ resource "helm_release" "kube_prometheus_stack" {
 
   create_namespace = false
 
-  atomic          = true
-  cleanup_on_fail = true
+  # Non-atomic allows partial success - we can fix issues manually if needed
+  atomic          = false # Changed to false to prevent rollback on timeout
+  cleanup_on_fail = false # Keep resources even if install fails
   wait            = true
-  timeout         = 1200
+  timeout         = 1800 # Increased to 30 minutes for initial install
 
   values = [
     yamlencode({
@@ -189,8 +190,11 @@ resource "helm_release" "kube_prometheus_stack" {
     })
   ]
 
+  # Wait for cluster, add-ons (especially CoreDNS), and node groups to be ready
   depends_on = [
     module.eks,
+    aws_eks_addon.coredns, # CoreDNS must be ready for service discovery
+    aws_eks_addon.vpc_cni, # VPC CNI must be ready for networking
     kubernetes_namespace.monitoring
   ]
 }

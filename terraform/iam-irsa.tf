@@ -1,20 +1,8 @@
 # IAM Roles for Service Accounts (IRSA)
 # Allows pods to access AWS services without storing credentials
-
-# OIDC Provider for EKS
-data "tls_certificate" "eks" {
-  url = module.eks.cluster_oidc_issuer_url
-}
-
-resource "aws_iam_openid_connect_provider" "eks" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
-  url             = module.eks.cluster_oidc_issuer_url
-
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-oidc-provider"
-  })
-}
+#
+# Note: The EKS module (with enable_irsa = true) creates the OIDC provider automatically.
+# We use module.eks.oidc_provider_arn instead of creating our own.
 
 # IAM Role for Backend Service Account (Secrets Manager access)
 resource "aws_iam_role" "backend_secrets" {
@@ -25,7 +13,7 @@ resource "aws_iam_role" "backend_secrets" {
     Statement = [{
       Effect = "Allow"
       Principal = {
-        Federated = aws_iam_openid_connect_provider.eks.arn
+        Federated = module.eks.oidc_provider_arn
       }
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {
@@ -66,7 +54,7 @@ resource "aws_iam_role" "fluent_bit" {
     Statement = [{
       Effect = "Allow"
       Principal = {
-        Federated = aws_iam_openid_connect_provider.eks.arn
+        Federated = module.eks.oidc_provider_arn
       }
       Action = "sts:AssumeRoleWithWebIdentity"
       Condition = {

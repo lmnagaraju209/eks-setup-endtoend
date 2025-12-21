@@ -48,6 +48,14 @@ After `terraform apply`, grab the values needed for GitHub Actions:
 terraform output aws_account_id
 terraform output aws_region
 terraform output github_actions_role_arn
+```
+
+**ECR Repository Names** (hardcoded, no need to set as variables):
+- Backend: `taskmanager-backend`
+- Frontend: `taskmanager-frontend`
+
+You can verify the repository URLs with:
+```bash
 terraform output ecr_backend_repository_url
 terraform output ecr_frontend_repository_url
 ```
