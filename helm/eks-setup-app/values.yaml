@@ -6,7 +6,7 @@ global:
   podSecurityContext: {}
   containerSecurityContext:
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
+    readOnlyRootFilesystem: false  # Spring Boot/Tomcat needs writable /tmp
     capabilities:
       drop: ["ALL"]
 networkPolicy:
