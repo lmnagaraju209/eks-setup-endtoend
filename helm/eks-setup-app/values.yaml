@@ -37,7 +37,7 @@ backend:
   enabled: true
   image:
     repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-backend"
-    tag: "b3c4fed35aba58fde14155ee3cac332eabf5addc"
+    tag: "6604bcbb0cad3f3957f2f0179e124aca90e46b27"
     pullPolicy: IfNotPresent
   replicaCount: 1
   serviceAccount:
@@ -87,7 +87,7 @@ frontend:
   enabled: true
   image:
     repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-frontend"
-    tag: "b3c4fed35aba58fde14155ee3cac332eabf5addc"
+    tag: "6604bcbb0cad3f3957f2f0179e124aca90e46b27"
     pullPolicy: IfNotPresent
   serviceAccount:
     create: true
