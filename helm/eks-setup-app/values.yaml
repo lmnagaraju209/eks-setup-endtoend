@@ -39,7 +39,7 @@ externalSecrets:
 backend:
   enabled: true
   image:
-    repository: "<account-id>.dkr.ecr.<region>.amazonaws.com/backend"
+    repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-backend"
     tag: "latest"
     pullPolicy: IfNotPresent
 
@@ -97,7 +97,7 @@ backend:
 frontend:
   enabled: true
   image:
-    repository: "<account-id>.dkr.ecr.<region>.amazonaws.com/frontend"
+    repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-frontend"
     tag: "latest"
     pullPolicy: IfNotPresent
 
