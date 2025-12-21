@@ -83,7 +83,7 @@ jobs:
     - name: Frontend install (sanity)
       run: |
         cd services/frontend
-        npm ci
+        npm install
     
     - name: Build and push backend image
       env:
