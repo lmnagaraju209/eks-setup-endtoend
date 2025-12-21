@@ -20,6 +20,11 @@ env:
 jobs:
   build-test-push:
     runs-on: ubuntu-latest
+    # Required for OIDC authentication with AWS
+    permissions:
+      id-token: write   # Required for OIDC
+      contents: read    # Required to checkout code
+      pull-requests: write  # Required to commit back to repo
     
     steps:
     - name: Checkout
@@ -49,12 +54,9 @@ jobs:
         # - AWS_ROLE_TO_ASSUME: ARN from terraform output github_actions_role_arn
         #   Get it with: terraform output github_actions_role_arn
         role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-        # Fallback: If OIDC is not configured, use access keys instead:
-        # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ vars.AWS_REGION }}
-        audience: sts.amazonaws.com
-        output-env-credentials: true
+        # OIDC configuration
+        role-session-name: GitHubActions-${{ github.run_id }}
     
     - name: Login to Amazon ECR
       id: login-ecr
