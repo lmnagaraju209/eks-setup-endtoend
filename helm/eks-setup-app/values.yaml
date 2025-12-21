@@ -9,10 +9,8 @@ global:
     readOnlyRootFilesystem: true
     capabilities:
       drop: ["ALL"]
-
 networkPolicy:
   enabled: false
-
 externalSecrets:
   enabled: false
   # Creates a SecretStore + ExternalSecret that syncs from AWS Secrets Manager into a K8s Secret.
@@ -35,30 +33,28 @@ externalSecrets:
         remoteKey: DB_USERNAME
       - secretKey: DB_PASSWORD
         remoteKey: DB_PASSWORD
-
 backend:
   enabled: true
   image:
     repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-backend"
+<<<<<<< HEAD
     tag: "latest"
+=======
+    tag: "fcddbd8dfda8c2cf5588ff070e3ee593215f1c64"
+>>>>>>> ddad5048fa514e7ac89bb4c06f9a52b01c4ea1a6
     pullPolicy: IfNotPresent
-
   replicaCount: 2
-
   serviceAccount:
     create: true
     name: ""
     annotations: {}
     # annotations:
     #   eks.amazonaws.com/role-arn: arn:aws:iam::<account>:role/backend-secrets-role
-
   rbac:
     create: false
-
   service:
     type: ClusterIP
     port: 8080
-
   env:
     # Spring Boot reads these directly
     AWS_REGION: "us-east-1"
@@ -67,7 +63,6 @@ backend:
     # DB_URL: "jdbc:postgresql://<rds-endpoint>:5432/itemsdb"
     # DB_USERNAME: "postgres"
     # DB_PASSWORD: "postgres"
-
   resources:
     requests:
       cpu: 200m
@@ -75,7 +70,6 @@ backend:
     limits:
       cpu: 1000m
       memory: 512Mi
-
   probes:
     liveness:
       path: /health
@@ -85,7 +79,6 @@ backend:
       path: /ready
       initialDelaySeconds: 10
       periodSeconds: 5
-
   hpa:
     enabled: false
     minReplicas: 2
@@ -93,32 +86,29 @@ backend:
     cpu:
       enabled: true
       averageUtilization: 70
-
 frontend:
   enabled: true
   image:
     repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-frontend"
+<<<<<<< HEAD
     tag: "latest"
+=======
+    tag: "fcddbd8dfda8c2cf5588ff070e3ee593215f1c64"
+>>>>>>> ddad5048fa514e7ac89bb4c06f9a52b01c4ea1a6
     pullPolicy: IfNotPresent
-
   serviceAccount:
     create: true
     name: ""
     annotations: {}
-
   rbac:
     create: false
-
   replicaCount: 2
-
   service:
     type: ClusterIP
     port: 3000
-
   env:
     BACKEND_URL: "http://backend:8080"
     PORT: "3000"
-
   resources:
     requests:
       cpu: 100m
@@ -126,7 +116,6 @@ frontend:
     limits:
       cpu: 500m
       memory: 256Mi
-
   probes:
     liveness:
       path: /health
@@ -136,7 +125,6 @@ frontend:
       path: /health
       initialDelaySeconds: 10
       periodSeconds: 5
-
   hpa:
     enabled: false
     minReplicas: 2
@@ -144,13 +132,10 @@ frontend:
     cpu:
       enabled: true
       averageUtilization: 70
-
 ingress:
   enabled: false
-
   # If using AWS Load Balancer Controller (ALB Ingress):
   className: "alb"
-
   annotations:
     # Required for ALB
     kubernetes.io/ingress.class: alb
@@ -160,7 +145,6 @@ ingress:
     # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:<region>:<account>:certificate/<id>
     # alb.ingress.kubernetes.io/ssl-redirect: "443"
-
   hosts:
     - host: ""
       paths:
@@ -169,5 +153,3 @@ ingress:
           service:
             name: frontend
             port: 3000
-
-
