@@ -39,7 +39,7 @@ backend:
     repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-backend"
     tag: "8df01425f53a8bf500c39e3c74433897f0afb907"
     pullPolicy: IfNotPresent
-  replicaCount: 2
+  replicaCount: 1
   serviceAccount:
     create: true
     name: ""
@@ -94,7 +94,7 @@ frontend:
     annotations: {}
   rbac:
     create: false
-  replicaCount: 2
+  replicaCount: 1
   service:
     type: ClusterIP
     port: 3000
