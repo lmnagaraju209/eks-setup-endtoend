@@ -23,8 +23,8 @@ jobs:
     # Required for OIDC authentication with AWS
     permissions:
       id-token: write   # Required for OIDC
-      contents: read    # Required to checkout code
-      pull-requests: write  # Required to commit back to repo
+      contents: write   # Required to commit and push changes back to repo
+      pull-requests: write  # Required for PR operations
     
     steps:
     - name: Checkout
