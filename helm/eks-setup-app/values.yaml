@@ -53,12 +53,13 @@ backend:
     port: 8080
   env:
     # Spring Boot reads these directly
-    AWS_REGION: "us-east-1"
-    DB_SECRET_NAME: "backend-db-credentials"
-    # If you want to bypass Secrets Manager, set DB_URL/DB_USERNAME/DB_PASSWORD too
-    # DB_URL: "jdbc:postgresql://<rds-endpoint>:5432/itemsdb"
-    # DB_USERNAME: "postgres"
-    # DB_PASSWORD: "postgres"
+    # Database connection to PostgreSQL deployed in cluster
+    DB_URL: "jdbc:postgresql://postgresql:5432/itemsdb"
+    DB_USERNAME: "postgres"
+    DB_PASSWORD: "postgres"
+    DB_DDL_AUTO: "update"
+    # AWS_REGION: "us-east-1"
+    # DB_SECRET_NAME: "backend-db-credentials"
   resources:
     requests:
       cpu: 200m
