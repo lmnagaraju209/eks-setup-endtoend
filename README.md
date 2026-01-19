@@ -67,5 +67,5 @@ Follow **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** for the Terraform + Helm f
 
 ## ✅ End-to-End Understanding
 
-Read **`Detailed_Project_endtoend_Explain.md`** for a complete, line-by-line
+Read **[Detailed_Project_endtoend_Explain.md](Detailed_Project_endtoend_Explain.md)** for a complete, line-by-line
 explanation of the project.
