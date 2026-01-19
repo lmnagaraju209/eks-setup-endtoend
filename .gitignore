@@ -22,3 +22,6 @@ ARGOCD_QUICK_SETUP.md
 .env
 .env.local
 
+# Node.js dependencies
+node_modules/
+**/node_modules/

@@ -5,7 +5,7 @@
 variable "enable_monitoring" {
   description = "If true, install kube-prometheus-stack (Prometheus, Grafana, Alertmanager) via Helm."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "monitoring_namespace" {

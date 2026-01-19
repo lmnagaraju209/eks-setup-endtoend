@@ -11,6 +11,8 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+tfplan
+*.tfplan
 
 # Backend configuration (may contain bucket names)
 backend.tf

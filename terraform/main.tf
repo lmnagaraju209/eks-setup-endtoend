@@ -105,7 +105,20 @@ locals {
   # S3 bucket names can't have underscores, only hyphens
   # If someone types "my_state_bucket", we convert it to "my-state-bucket"
   # This prevents errors later when Terraform tries to create the bucket
-  sanitized_bucket_name = lower(replace(var.terraform_state_bucket_name, "_", "-"))
+  sanitized_bucket_name_base = lower(replace(var.terraform_state_bucket_name, "_", "-"))
+  
+  # Include AWS account ID in bucket name to make it unique per account
+  # This allows switching AWS accounts without conflicts
+  # Format: <project-name>-<account-id>-statefile
+  sanitized_bucket_name = var.include_account_id_in_bucket_name ? 
+    "${local.sanitized_bucket_name_base}-${data.aws_caller_identity.current.account_id}-statefile" :
+    local.sanitized_bucket_name_base
+  
+  # Include AWS account ID in DynamoDB table name to make it unique per account
+  # Format: <table-name>-<account-id>
+  dynamodb_table_name = var.include_account_id_in_bucket_name ?
+    "${var.terraform_state_dynamodb_table}-${data.aws_caller_identity.current.account_id}" :
+    var.terraform_state_dynamodb_table
 }
 
 # If we're using an existing VPC, fetch its details
@@ -198,8 +211,10 @@ resource "aws_s3_bucket" "terraform_state" {
   force_destroy = false # Safety: don't let someone accidentally delete state
 
   tags = merge(var.tags, {
-    Name    = "Terraform State Bucket"
-    Purpose = "Terraform remote state storage"
+    Name        = "Terraform State Bucket"
+    Purpose     = "Terraform remote state storage"
+    AccountId   = data.aws_caller_identity.current.account_id
+    Project     = var.project_name
   })
 }
 
@@ -247,7 +262,7 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 # This prevents two people from modifying infrastructure simultaneously,
 # which would cause conflicts and potentially break things
 resource "aws_dynamodb_table" "terraform_state_lock" {
-  name         = var.terraform_state_dynamodb_table
+  name         = local.dynamodb_table_name
   billing_mode = "PAY_PER_REQUEST" # Only pay for what you use - perfect for locks
   hash_key     = "LockID"          # The lock ID is the primary key
 
@@ -257,8 +272,10 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
   }
 
   tags = merge(var.tags, {
-    Name    = "Terraform State Lock Table"
-    Purpose = "Terraform state locking"
+    Name      = "Terraform State Lock Table"
+    Purpose   = "Terraform state locking"
+    AccountId = data.aws_caller_identity.current.account_id
+    Project   = var.project_name
   })
 }
 

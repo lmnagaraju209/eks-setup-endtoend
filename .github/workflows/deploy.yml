@@ -80,10 +80,11 @@ jobs:
         # Note: Cache disabled since package-lock.json doesn't exist yet
         # After first run, package-lock.json will be created and caching can be enabled
 
-    - name: Frontend install (sanity)
+    - name: Frontend install and test
       run: |
         cd services/frontend
         npm install
+        npm test
     
     - name: Build and push backend image
       env:

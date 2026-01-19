@@ -54,7 +54,7 @@ backend:
   env:
     # Spring Boot reads these directly
     # Database connection to PostgreSQL deployed in cluster
-    DB_URL: "jdbc:postgresql://postgresql:5432/itemsdb"
+    DB_URL: "jdbc:postgresql://postgresql:5432/taskmanager"
     DB_USERNAME: "postgres"
     DB_PASSWORD: "postgres"
     DB_DDL_AUTO: "update"

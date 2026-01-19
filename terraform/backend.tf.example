@@ -10,10 +10,17 @@
 # Or you can get them with:
 #   terraform output terraform_state_bucket_name
 #   terraform output terraform_state_dynamodb_table
+#
+# IMPORTANT: When switching AWS accounts, Terraform will automatically create
+# new bucket and table with account-specific names if include_account_id_in_bucket_name=true.
+# This allows you to use the same Terraform code across multiple AWS accounts.
 
 terraform {
   backend "s3" {
     # S3 bucket name (must match terraform output terraform_state_bucket_name)
+    # If include_account_id_in_bucket_name=true, this will include account ID
+    # Example: "demoeks-123456789012-statefile" (when account ID included)
+    # Example: "demoeks-statefile" (when account ID not included)
     bucket = "your-project-name-terraform-state"
 
     # Path to state file within the bucket
@@ -23,6 +30,9 @@ terraform {
     region = "us-east-2"
 
     # DynamoDB table name for state locking (must match terraform output terraform_state_dynamodb_table)
+    # If include_account_id_in_bucket_name=true, this will include account ID
+    # Example: "terraform-state-lock-123456789012" (when account ID included)
+    # Example: "terraform-state-lock" (when account ID not included)
     dynamodb_table = "terraform-state-lock"
 
     # Encrypt state at rest

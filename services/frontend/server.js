@@ -49,8 +49,14 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Frontend server running on http://localhost:${PORT}`);
-  console.log(`Backend URL: ${BACKEND_URL}`);
-});
+// Export app for testing
+module.exports = app;
+
+// Only start server if not in test environment
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Frontend server running on http://localhost:${PORT}`);
+    console.log(`Backend URL: ${BACKEND_URL}`);
+  });
+}
 

@@ -172,10 +172,20 @@ variable "tags" {
 # S3 bucket name for Terraform state
 # Must be globally unique (someone else can't have the same name)
 # Underscores get converted to hyphens automatically
+# If include_account_id_in_bucket_name is true, account ID will be appended automatically
 variable "terraform_state_bucket_name" {
-  description = "S3 bucket name for Terraform state. Must be globally unique (someone else can't have the same name). Underscores get converted to hyphens automatically. We'll create this bucket for you."
+  description = "S3 bucket name base for Terraform state (e.g., 'demoeks'). If include_account_id_in_bucket_name=true, account ID will be appended automatically (e.g., 'demoeks-123456789012-statefile'). Must be globally unique."
   type        = string
   # No default - Terraform will prompt you
+}
+
+# Include AWS account ID in bucket name for multi-account support
+# When true: bucket name = "<bucket-name>-<account-id>-statefile"
+# When false: bucket name = "<bucket-name>" (original behavior)
+variable "include_account_id_in_bucket_name" {
+  description = "If true, automatically append AWS account ID to S3 bucket and DynamoDB table names. This makes them unique per AWS account, allowing easy account switching."
+  type        = bool
+  default     = true
 }
 
 # S3 key/path for Terraform state file

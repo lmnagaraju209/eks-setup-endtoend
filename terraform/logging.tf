@@ -5,7 +5,7 @@
 variable "enable_logging" {
   description = "If true, install aws-for-fluent-bit and ship pod logs to CloudWatch Logs."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "logging_namespace" {

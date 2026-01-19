@@ -1,0 +1,32 @@
+########################################
+# Second Apply Variables (Optional Add-ons)
+########################################
+
+# Enable after first apply succeeds.
+
+# Phase 5 (ArgoCD)
+enable_argocd = true
+
+# Phase 5 (ArgoCD Application): GitOps
+# argocd_application_enabled = true
+# argocd_git_repo_url = "https://github.com/your-org/your-repo.git"
+# argocd_application_target_revision = "main"
+# argocd_application_namespace = "default"
+# argocd_application_sync_policy = "automated"
+
+# Domain ingress (ALB + ACM + Route53)
+# enable_public_domain_ingress = true
+# route53_zone_name = "yourdomain.com"
+# application_host = "app.yourdomain.com"
+# use_acm_certificate = true
+
+# Phase 7 (Monitoring)
+enable_monitoring = true
+# grafana_ingress_enabled = true
+# grafana_ingress_host = "grafana.yourdomain.com"
+
+# Phase 7 (Logging)
+enable_logging = true
+
+# Phase 8 (Security): External Secrets Operator
+enable_external_secrets = true

@@ -5,7 +5,7 @@
 variable "enable_external_secrets" {
   description = "If true, install External Secrets Operator (ESO) and configure IRSA so it can read AWS Secrets Manager."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "external_secrets_namespace" {

@@ -5,7 +5,7 @@
 variable "enable_argocd" {
   description = "If true, install ArgoCD into the EKS cluster during terraform apply."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "argocd_chart_version" {
@@ -116,6 +116,26 @@ data "kubernetes_secret" "argocd_initial_admin" {
   }
 
   depends_on = [helm_release.argocd]
+}
+
+# Set ArgoCD admin password to "admin" after ArgoCD is installed
+resource "null_resource" "argocd_set_admin_password" {
+  count = var.enable_argocd ? 1 : 0
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      kubectl create secret generic argocd-initial-admin-secret \
+        --from-literal=password=admin \
+        -n ${var.argocd_namespace} \
+        --dry-run=client -o yaml | kubectl apply -f -
+    EOT
+  }
+
+  depends_on = [helm_release.argocd]
+
+  triggers = {
+    argocd_release = helm_release.argocd[0].id
+  }
 }
 
 # ============================================================================

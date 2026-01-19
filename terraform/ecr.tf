@@ -4,13 +4,14 @@
 resource "aws_ecr_repository" "backend" {
   name                 = "taskmanager-backend"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
 
   image_scanning_configuration {
     scan_on_push = true
   }
 
-  tags = merge(var.tags, { 
-    Name = "taskmanager-backend"
+  tags = merge(var.tags, {
+    Name    = "taskmanager-backend"
     Purpose = "Backend application Docker images"
   })
 }
@@ -18,13 +19,14 @@ resource "aws_ecr_repository" "backend" {
 resource "aws_ecr_repository" "frontend" {
   name                 = "taskmanager-frontend"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
 
   image_scanning_configuration {
     scan_on_push = true
   }
 
-  tags = merge(var.tags, { 
-    Name = "taskmanager-frontend"
+  tags = merge(var.tags, {
+    Name    = "taskmanager-frontend"
     Purpose = "Frontend application Docker images"
   })
 }

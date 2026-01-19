@@ -1,210 +1,153 @@
-# Deployment Guide - Phase 2
+# Deployment Guide (Terraform + Helm)
 
-Complete guide for deploying the application services to EKS.
+Simple, end-to-end deployment using the Terraform code in this repo and the
+Helm chart in `helm/eks-setup-app`.
 
-## Prerequisites
+## Prerequisites (macOS)
 
-- Phase 1 completed (EKS cluster running)
-- kubectl configured: `aws eks update-kubeconfig --region <region> --name <cluster-name>`
-- AWS ECR repository created
-- Docker images built and pushed to ECR
+- AWS CLI v2, kubectl, Helm, Terraform, Docker Desktop
+- AWS credentials configured: `aws configure` or `AWS_PROFILE=<profile>`
 
-## Step 1: Create ECR Repositories
+## Step 1: Configure Terraform state (S3 backend)
+
+We store Terraform state in S3 (recommended for safety and repeat runs).
 
 ```bash
-aws ecr create-repository --repository-name backend --region <region>
-aws ecr create-repository --repository-name frontend --region <region>
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your AWS settings (region, cluster name, etc.)
+terraform init
+terraform apply
 ```
 
-Get repository URLs:
+After the first apply, Terraform creates the S3 bucket and DynamoDB table.
+Now switch the backend to S3:
 ```bash
-aws ecr describe-repositories --region <region>
+cp backend.tf.example backend.tf
+# Edit backend.tf with the bucket/table names from terraform output
+terraform output terraform_state_bucket_name
+terraform output terraform_state_dynamodb_table
+terraform init -migrate-state
 ```
 
-## Step 2: Build and Push Images
+## Step 2: Provision infrastructure (first run)
 
-### Login to ECR
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your AWS settings (region, cluster name, etc.)
+terraform init
+terraform apply
+```
+
+Terraform creates the EKS cluster and ECR repositories.
+
+## Step 3: Configure kubectl
+```bash
+terraform output configure_kubectl
+```
+
+Verify:
+```bash
+kubectl get nodes
+```
+
+## Step 4: Build and push images to ECR
+
+Get ECR URLs:
+```bash
+terraform output ecr_backend_repository_url
+terraform output ecr_frontend_repository_url
+```
+
+Login to ECR:
 ```bash
 aws ecr get-login-password --region <region> | \
   docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
 ```
 
-### Build Backend
+Build and push backend:
 ```bash
 cd services/backend
-docker build -t <account-id>.dkr.ecr.<region>.amazonaws.com/backend:latest .
-docker push <account-id>.dkr.ecr.<region>.amazonaws.com/backend:latest
+docker build -t <backend-repo-url>:latest .
+docker push <backend-repo-url>:latest
 ```
 
-### Build Frontend
+Build and push frontend:
 ```bash
 cd services/frontend
-docker build -t <account-id>.dkr.ecr.<region>.amazonaws.com/frontend:latest .
-docker push <account-id>.dkr.ecr.<region>.amazonaws.com/frontend:latest
+docker build -t <frontend-repo-url>:latest .
+docker push <frontend-repo-url>:latest
 ```
 
-## Step 3: Create Kubernetes Manifests
-
-Create `k8s/` directory and add deployment files.
-
-### Backend Deployment (`k8s/backend-deployment.yaml`)
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: backend
-  template:
-    metadata:
-      labels:
-        app: backend
-    spec:
-      containers:
-      - name: backend
-        image: <account-id>.dkr.ecr.<region>.amazonaws.com/backend:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: SPRING_PROFILES_ACTIVE
-          value: "production"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 5
-```
-
-### Frontend Deployment (`k8s/frontend-deployment.yaml`)
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: frontend
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-      containers:
-      - name: frontend
-        image: <account-id>.dkr.ecr.<region>.amazonaws.com/frontend:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: BACKEND_URL
-          value: "http://backend-service:8080"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-```
-
-### Services (`k8s/services.yaml`)
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-service
-spec:
-  selector:
-    app: backend
-  ports:
-  - port: 8080
-    targetPort: 8080
-  type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-service
-spec:
-  selector:
-    app: frontend
-  ports:
-  - port: 3000
-    targetPort: 3000
-  type: LoadBalancer
-```
-
-## Step 4: Deploy to EKS
+## Step 5: Deploy with Helm
 
 ```bash
-kubectl apply -f k8s/
+helm upgrade --install eks-setup-app ./helm/eks-setup-app \
+  --set backend.image.repository=<backend-repo-url> \
+  --set backend.image.tag=latest \
+  --set frontend.image.repository=<frontend-repo-url> \
+  --set frontend.image.tag=latest
 ```
 
 Check status:
 ```bash
 kubectl get pods
-kubectl get services
+kubectl get svc
 ```
 
-## Step 5: Access Application
+## Step 6: Access the application
 
-Get LoadBalancer URL:
 ```bash
-kubectl get service frontend-service
+kubectl get svc
+# Look for eks-setup-app-frontend (or your Helm release name)
 ```
-
-Open the EXTERNAL-IP in your browser.
 
 ## Troubleshooting
 
-### Pods Not Starting
 ```bash
+kubectl get pods
 kubectl describe pod <pod-name>
 kubectl logs <pod-name>
 ```
 
-### Image Pull Errors
-Verify ECR permissions and image exists:
+## Optional: Enable add-ons on second apply
+
+After the first successful apply, you can enable optional features and run
+Terraform again:
+
+- `enable_public_domain_ingress = true` (set `route53_zone_name`, `application_host`)
+- `enable_argocd = true`
+- `enable_monitoring = true`
+- `enable_logging = true`
+- `enable_external_secrets = true`
+
+Then run:
 ```bash
-aws ecr describe-images --repository-name backend --region <region>
+terraform apply
 ```
 
-### Service Not Accessible
-Check service endpoints:
-```bash
-kubectl get endpoints
-kubectl describe service frontend-service
-```
+## Safe Terraform Re-Apply / Destroy
 
-## Scaling
+- Always run Terraform from the same folder and keep the state file safe.
+- Wait for `terraform destroy` to finish before running `terraform apply` again.
+- Avoid deleting AWS resources manually outside Terraform.
 
-Scale backend:
-```bash
-kubectl scale deployment backend --replicas=3
-```
+If you plan to run Terraform many times, use an S3 backend for the state file.
 
 ## Updates
 
 After pushing new images:
 ```bash
-kubectl rollout restart deployment/backend
-kubectl rollout restart deployment/frontend
+kubectl rollout restart deployment/eks-setup-app-backend
+kubectl rollout restart deployment/eks-setup-app-frontend
 ```
 
 ## Cleanup
 
-Remove deployments:
 ```bash
-kubectl delete -f k8s/
+helm uninstall eks-setup-app
+cd terraform
+terraform destroy
 ```
 

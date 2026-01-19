@@ -122,8 +122,13 @@ output "terraform_state_bucket_name" {
 # DynamoDB table name for state locking
 # Useful for checking locks or troubleshooting
 output "terraform_state_dynamodb_table" {
-  description = "DynamoDB table name for state locking"
+  description = "DynamoDB table name for state locking (includes account ID if include_account_id_in_bucket_name=true)"
   value       = aws_dynamodb_table.terraform_state_lock.name
+}
+
+output "aws_account_id" {
+  description = "Current AWS account ID (used in bucket and table naming)"
+  value       = data.aws_caller_identity.current.account_id
 }
 
 # Command to set up remote state backend
@@ -134,10 +139,7 @@ output "setup_backend_command" {
 }
 
 # Phase 4 outputs (CI/CD)
-output "aws_account_id" {
-  description = "AWS account ID"
-  value       = data.aws_caller_identity.current.account_id
-}
+# Note: aws_account_id output is defined above (line 129)
 
 output "aws_region" {
   description = "AWS region"
@@ -192,17 +194,17 @@ output "argocd_url" {
 }
 
 output "application_url" {
-  description = "Application URL (requires enable_public_domain_ingress=true)"
+  description = "Application URL (requires enable_public_domain_ingress=true). Uses HTTPS with self-signed cert when use_acm_certificate=false."
   value       = var.enable_public_domain_ingress ? "https://${var.application_host}" : null
 }
 
 output "argocd_subpath_url" {
-  description = "ArgoCD URL on the shared domain (requires enable_public_domain_ingress=true)"
+  description = "ArgoCD URL on the shared domain (requires enable_public_domain_ingress=true). Uses HTTPS with self-signed cert when use_acm_certificate=false."
   value       = (var.enable_public_domain_ingress && var.enable_argocd) ? "https://${var.application_host}/argocd" : null
 }
 
 output "monitoring_subpath_url" {
-  description = "Grafana URL on the shared domain (requires enable_public_domain_ingress=true)"
+  description = "Grafana URL on the shared domain (requires enable_public_domain_ingress=true). Uses HTTPS with self-signed cert when use_acm_certificate=false."
   value       = (var.enable_public_domain_ingress && var.enable_monitoring) ? "https://${var.application_host}/monitoring" : null
 }
 

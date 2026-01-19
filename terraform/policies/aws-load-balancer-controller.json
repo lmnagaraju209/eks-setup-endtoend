@@ -128,7 +128,9 @@
         "elasticloadbalancing:RemoveListenerCertificates",
         "elasticloadbalancing:ModifyRule",
         "elasticloadbalancing:RegisterTargets",
-        "elasticloadbalancing:DeregisterTargets"
+        "elasticloadbalancing:DeregisterTargets",
+        "elasticloadbalancing:AddTags",
+        "elasticloadbalancing:RemoveTags"
       ],
       "Resource": "*"
     }
