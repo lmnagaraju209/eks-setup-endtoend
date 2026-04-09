@@ -127,12 +127,12 @@ After the first apply, migrate state to S3:
 # 1. Copy backend example
 cp backend.tf.example backend.tf
 
-# 2. Get the actual bucket and table names
+# 2. Get the actual bucket name and region (must match aws_region in tfvars)
 terraform output terraform_state_bucket_name
-terraform output terraform_state_dynamodb_table
+terraform output aws_region
 
 # 3. Edit backend.tf with actual values
-# Update: bucket, dynamodb_table, region
+# Update: bucket, region (use_lockfile = true; no dynamodb_table)
 
 # 4. Migrate state
 terraform init -migrate-state
@@ -185,10 +185,8 @@ Each AWS account will have its own:
    - Isolated per account
    - Versioned and encrypted
 
-2. **DynamoDB Table**: `<table-name>-<account-id>`
-   - State locking table
-   - Prevents concurrent modifications
-   - Isolated per account
+2. **DynamoDB Table** (optional legacy resource; S3 backend uses `use_lockfile` now): `<table-name>-<account-id>`
+   - Still created by Terraform for backwards compatibility; not used when backend uses S3 native locking only
 
 3. **State File**: `eks-setup/terraform.tfstate`
    - Same path in bucket, but different bucket per account

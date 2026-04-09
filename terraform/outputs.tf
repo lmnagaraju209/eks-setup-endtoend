@@ -134,8 +134,8 @@ output "aws_account_id" {
 # Command to set up remote state backend
 # Run this after first apply to migrate state to S3
 output "setup_backend_command" {
-  description = "After first apply, run this to set up remote state backend"
-  value       = "cp backend.tf.example backend.tf && terraform init -migrate-state"
+  description = "After first apply: copy backend.tf.example to backend.tf, fill bucket/region from outputs, then migrate"
+  value       = "cp backend.tf.example backend.tf  # set bucket + region from terraform output, then: terraform init -migrate-state"
 }
 
 # Phase 4 outputs (CI/CD)

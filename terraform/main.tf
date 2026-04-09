@@ -110,15 +110,19 @@ locals {
   # Include AWS account ID in bucket name to make it unique per account
   # This allows switching AWS accounts without conflicts
   # Format: <project-name>-<account-id>-statefile
-  sanitized_bucket_name = var.include_account_id_in_bucket_name ? 
+  sanitized_bucket_name = (
+    var.include_account_id_in_bucket_name ?
     "${local.sanitized_bucket_name_base}-${data.aws_caller_identity.current.account_id}-statefile" :
     local.sanitized_bucket_name_base
-  
+  )
+
   # Include AWS account ID in DynamoDB table name to make it unique per account
   # Format: <table-name>-<account-id>
-  dynamodb_table_name = var.include_account_id_in_bucket_name ?
+  dynamodb_table_name = (
+    var.include_account_id_in_bucket_name ?
     "${var.terraform_state_dynamodb_table}-${data.aws_caller_identity.current.account_id}" :
     var.terraform_state_dynamodb_table
+  )
 }
 
 # If we're using an existing VPC, fetch its details

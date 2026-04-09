@@ -4,6 +4,13 @@ aws_region = "us-east-2"
 # Project Configuration
 project_name = "eks-setup"
 
+# Terraform state bucket (required — no default in variables.tf)
+# Pick a globally unique base name. Underscores are converted to hyphens.
+# With include_account_id_in_bucket_name=true (default), the real S3 bucket name is:
+#   "<sanitized-base>-<12-digit-account-id>-statefile"
+# Example: eks-setup-myorg -> eks-setup-myorg-123456789012-statefile
+terraform_state_bucket_name = "eks-setup-myorg-change-me"
+
 # VPC Configuration
 # Option 1: Use existing VPC (set use_existing_vpc = true)
 # use_existing_vpc = true

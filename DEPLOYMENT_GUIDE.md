@@ -8,39 +8,44 @@ Helm chart in `helm/eks-setup-app`.
 - AWS CLI v2, kubectl, Helm, Terraform, Docker Desktop
 - AWS credentials configured: `aws configure` or `AWS_PROFILE=<profile>`
 
-## Step 1: Configure Terraform state (S3 backend)
+## Step 1: Terraform — first apply with local state (no `backend.tf` yet)
 
-We store Terraform state in S3 (recommended for safety and repeat runs).
+Do **not** copy `backend.tf.example` to `backend.tf` until after the first successful
+apply. If `backend.tf` exists first, `terraform init` talks to S3 using placeholder or
+wrong region values and fails (for example HTTP 301 when `region` does not match the
+bucket’s region).
 
 ```bash
 cd terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your AWS settings (region, cluster name, etc.)
+# Edit terraform.tfvars: aws_region, project_name, terraform_state_bucket_name (required), etc.
 terraform init
 terraform apply
 ```
 
-After the first apply, Terraform creates the S3 bucket and DynamoDB table.
-Now switch the backend to S3:
+This creates the EKS cluster, ECR repositories, and the S3 state bucket (and lock table
+resources). State stays in `terraform.tfstate` on disk until you migrate.
+
+### Move state to S3 (after the apply above succeeds)
+
+```bash
+cd terraform
+terraform output terraform_state_bucket_name
+terraform output aws_region
+```
+
+Copy the example backend and paste **exactly** what the outputs show (same bucket name
+and **same region as `aws_region` in terraform.tfvars** — not a different region).
+
 ```bash
 cp backend.tf.example backend.tf
-# Edit backend.tf with the bucket/table names from terraform output
-terraform output terraform_state_bucket_name
-terraform output terraform_state_dynamodb_table
+# Edit backend.tf: set bucket and region from terraform output (remove REPLACE_ME_*)
 terraform init -migrate-state
 ```
 
-## Step 2: Provision infrastructure (first run)
-
-```bash
-cd terraform
-cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your AWS settings (region, cluster name, etc.)
-terraform init
-terraform apply
-```
-
-Terraform creates the EKS cluster and ECR repositories.
+If `terraform output` says there is no state file, you are in the wrong directory,
+apply never succeeded, or a broken `backend.tf` prevents init — temporarily rename
+`backend.tf`, run `terraform init -backend=false`, then run the output commands again.
 
 ## Step 3: Configure kubectl
 ```bash

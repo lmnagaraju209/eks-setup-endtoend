@@ -1,42 +1,43 @@
 # Remote State Backend Configuration
 #
-# IMPORTANT: Do NOT use this file directly. Copy it to backend.tf and update values.
+# IMPORTANT: Do NOT copy this to backend.tf until after your first successful
+# `terraform apply` while using local state (no backend.tf yet).
 #
-# After your first terraform apply, the S3 bucket and DynamoDB table will be created.
-# Then copy this file to backend.tf and update the bucket name and table name
-# to match what was created. Then run: terraform init -migrate-state
+# After first apply:
+#   1. terraform output terraform_state_bucket_name
+#   2. terraform output aws_region   # or use the same region as in terraform.tfvars
+#   3. Copy this file to backend.tf and replace REPLACE_ME_* below.
+#   4. terraform init -migrate-state
 #
-# The bucket name and table name are printed in terraform outputs after first apply.
-# Or you can get them with:
-#   terraform output terraform_state_bucket_name
-#   terraform output terraform_state_dynamodb_table
+# Why outputs fail sometimes
+# - Run commands from the terraform/ directory (where .tfstate lives).
+# - If `terraform init` fails after you add backend.tf, Terraform cannot read state;
+#   fix backend bucket/region first, or temporarily:  ren backend.tf backend.tf.bak
+#   then  terraform init -backend=false  then  terraform output ...
 #
-# IMPORTANT: When switching AWS accounts, Terraform will automatically create
-# new bucket and table with account-specific names if include_account_id_in_bucket_name=true.
-# This allows you to use the same Terraform code across multiple AWS accounts.
+# Region MUST match the bucket
+# - `region` here must be the AWS region where the bucket was created (same as
+#   `aws_region` in terraform.tfvars). If they differ, S3 returns 301 and init fails.
+#
+# Bucket name is NOT the placeholder below
+# - With include_account_id_in_bucket_name=true (default), the real bucket is:
+#     <terraform_state_bucket_name>-<account-id>-statefile
+#   (hyphens, lower case; underscores in the variable become hyphens).
+# - Always paste the value from: terraform output terraform_state_bucket_name
+#
+# Locking: DynamoDB locking in the S3 backend is deprecated. This example uses
+# S3 native locking (use_lockfile). The DynamoDB table Terraform still creates
+# is unused by the backend but harmless; you can remove it later if you want.
 
 terraform {
   backend "s3" {
-    # S3 bucket name (must match terraform output terraform_state_bucket_name)
-    # If include_account_id_in_bucket_name=true, this will include account ID
-    # Example: "demoeks-123456789012-statefile" (when account ID included)
-    # Example: "demoeks-statefile" (when account ID not included)
-    bucket = "your-project-name-terraform-state"
+    bucket = "REPLACE_ME_output_of_terraform_state_bucket_name"
+    key    = "eks-setup/terraform.tfstate"
 
-    # Path to state file within the bucket
-    key = "eks-setup/terraform.tfstate"
+    # Must equal aws_region in terraform.tfvars (the region where the bucket exists)
+    region = "REPLACE_ME_same_as_aws_region"
 
-    # AWS region where the bucket is located
-    region = "us-east-2"
-
-    # DynamoDB table name for state locking (must match terraform output terraform_state_dynamodb_table)
-    # If include_account_id_in_bucket_name=true, this will include account ID
-    # Example: "terraform-state-lock-123456789012" (when account ID included)
-    # Example: "terraform-state-lock" (when account ID not included)
-    dynamodb_table = "terraform-state-lock"
-
-    # Encrypt state at rest
-    encrypt = true
+    encrypt      = true
+    use_lockfile = true
   }
 }
-
