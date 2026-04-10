@@ -34,9 +34,13 @@ spec:
             - name: http
               containerPort: {{ .Values.frontend.service.port }}
           env:
+            - name: BACKEND_URL
+              value: {{ if .Values.frontend.backendUrl }}{{ .Values.frontend.backendUrl | quote }}{{ else }}{{ printf "http://%s-backend:%v" (include "eks-setup-app.fullname" .) .Values.backend.service.port | quote }}{{ end }}
             {{- range $k, $v := .Values.frontend.env }}
+            {{- if ne $k "BACKEND_URL" }}
             - name: {{ $k }}
               value: {{ $v | quote }}
+            {{- end }}
             {{- end }}
           livenessProbe:
             httpGet:

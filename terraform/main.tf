@@ -583,6 +583,47 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
 
+# Default StorageClass for EBS CSI — without this, PVCs often stay Pending (no provisioner).
+resource "kubernetes_storage_class_v1" "gp3_default" {
+  metadata {
+    name = "gp3"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+
+  storage_provisioner    = "ebs.csi.aws.com"
+  reclaim_policy         = "Delete"
+  volume_binding_mode    = "WaitForFirstConsumer"
+  allow_volume_expansion = true
+
+  parameters = {
+    type = "gp3"
+  }
+
+  depends_on = [aws_eks_addon.ebs_csi]
+}
+
+# Immediate binding — PVCs bind without waiting for a scheduled pod. This avoids
+# StatefulSet + WaitForFirstConsumer edge cases where claims stay Pending. Use
+# for in-cluster Postgres (Helm); keep default gp3 on WaitForFirstConsumer for other workloads.
+resource "kubernetes_storage_class_v1" "gp3_immediate" {
+  metadata {
+    name = "gp3-immediate"
+  }
+
+  storage_provisioner    = "ebs.csi.aws.com"
+  reclaim_policy         = "Delete"
+  volume_binding_mode    = "Immediate"
+  allow_volume_expansion = true
+
+  parameters = {
+    type = "gp3"
+  }
+
+  depends_on = [aws_eks_addon.ebs_csi]
+}
+
 # ============================================================================
 # Kubernetes Provider (for managing aws-auth configmap)
 # ============================================================================

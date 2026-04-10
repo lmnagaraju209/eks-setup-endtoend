@@ -32,10 +32,6 @@ spec:
             - name: http
               containerPort: {{ .Values.backend.service.port }}
           env:
-            {{- range $k, $v := .Values.backend.env }}
-            - name: {{ $k }}
-              value: {{ $v | quote }}
-            {{- end }}
             {{- if .Values.externalSecrets.enabled }}
             - name: DB_URL
               valueFrom:
@@ -52,6 +48,21 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.externalSecrets.backend.targetSecretName }}
                   key: DB_PASSWORD
+            {{- else if .Values.postgresql.enabled }}
+            - name: DB_URL
+              value: {{ printf "jdbc:postgresql://%s-postgresql:5432/%s" (include "eks-setup-app.fullname" .) .Values.postgresql.auth.database | quote }}
+            - name: DB_USERNAME
+              value: {{ .Values.postgresql.auth.username | quote }}
+            - name: DB_PASSWORD
+              value: {{ .Values.postgresql.auth.password | quote }}
+            {{- end }}
+            {{- $dbFromSecretOrPg := or .Values.externalSecrets.enabled .Values.postgresql.enabled }}
+            {{- range $k, $v := .Values.backend.env }}
+            {{- $isDbKey := or (eq $k "DB_URL") (or (eq $k "DB_USERNAME") (eq $k "DB_PASSWORD")) }}
+            {{- if not (and $dbFromSecretOrPg $isDbKey) }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
             {{- end }}
           livenessProbe:
             httpGet:

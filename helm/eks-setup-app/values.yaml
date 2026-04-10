@@ -11,6 +11,32 @@ global:
       drop: ["ALL"]
 networkPolicy:
   enabled: false
+
+# In-cluster PostgreSQL (same role as docker-compose "postgres" service).
+# Disable and use externalSecrets + RDS if you prefer a managed database.
+postgresql:
+  enabled: true
+  image: postgres:15-alpine
+  imagePullPolicy: IfNotPresent
+  auth:
+    database: itemsdb
+    username: postgres
+    password: postgres
+  persistence:
+    size: 10Gi
+    # Use "gp3-immediate" (Terraform kubernetes_storage_class_v1.gp3_immediate) so the PVC
+    # provisions without WaitForFirstConsumer (avoids stuck Pending with StatefulSets).
+    storageClassName: "gp3-immediate"
+    # true = no PVC (data lost when the pod is deleted); use only if storage is not ready yet
+    useEmptyDir: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
 externalSecrets:
   enabled: false
   # Creates a SecretStore + ExternalSecret that syncs from AWS Secrets Manager into a K8s Secret.
@@ -52,11 +78,7 @@ backend:
     type: ClusterIP
     port: 8080
   env:
-    # Spring Boot reads these directly
-    # Database connection to PostgreSQL deployed in cluster
-    DB_URL: "jdbc:postgresql://postgresql:5432/taskmanager"
-    DB_USERNAME: "postgres"
-    DB_PASSWORD: "postgres"
+    # DB_URL / DB_USERNAME / DB_PASSWORD are injected when postgresql.enabled (or externalSecrets).
     DB_DDL_AUTO: "update"
     # AWS_REGION: "us-east-1"
     # DB_SECRET_NAME: "backend-db-credentials"
@@ -85,6 +107,8 @@ backend:
       averageUtilization: 70
 frontend:
   enabled: true
+  # If empty, BACKEND_URL is http://<release-chart-fullname>-backend:<port> (correct for Kubernetes DNS).
+  backendUrl: ""
   image:
     repository: "343218219153.dkr.ecr.us-east-2.amazonaws.com/taskmanager-frontend"
     tag: "b3c4fed35aba58fde14155ee3cac332eabf5addc"
@@ -100,7 +124,6 @@ frontend:
     type: ClusterIP
     port: 3000
   env:
-    BACKEND_URL: "http://backend:8080"
     PORT: "3000"
   resources:
     requests:
