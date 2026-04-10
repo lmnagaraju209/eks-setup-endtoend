@@ -1,5 +1,20 @@
 name: CI/CD - Build, Push to ECR, Update Helm Values
 
+# AWS authentication (pick one):
+#
+# A) OIDC (recommended) — requires ONE-TIME setup in the SAME AWS account as ECR:
+#    1. In terraform/terraform.tfvars set github_org and github_repo to match this repo
+#       (e.g. github_org = "lmnagaraju209", github_repo = "eks-setup-endtoend").
+#    2. Run: cd terraform && terraform apply
+#       This creates IAM > Identity providers > token.actions.githubusercontent.com
+#       and the role from: terraform output -raw github_actions_role_arn
+#    3. GitHub repo > Settings > Secrets > Actions: add AWS_ROLE_TO_ASSUME = that ARN.
+#    If you see "No OpenIDConnect provider found ... token.actions.githubusercontent.com",
+#    Terraform has not created the provider in this account yet (or you are using the wrong account).
+#
+# B) Static IAM user (temporary): Variables > New variable > AWS_USE_STATIC_CREDS = true
+#    and Secrets > AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY for an IAM user that can push to ECR.
+
 on:
   push:
     branches: [main]
@@ -46,17 +61,39 @@ jobs:
         fi
         echo "✓ AWS_REGION: ${{ vars.AWS_REGION }}"
         echo "✓ AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}"
+
+    - name: Validate AWS auth inputs
+      run: |
+        if [ "${{ vars.AWS_USE_STATIC_CREDS }}" = "true" ]; then
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "::error::AWS_USE_STATIC_CREDS is true but AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is missing."
+            exit 1
+          fi
+          echo "Using static AWS credentials (OIDC skipped)."
+        else
+          if [ -z "${{ secrets.AWS_ROLE_TO_ASSUME }}" ]; then
+            echo "::error::Secret AWS_ROLE_TO_ASSUME is not set. Add it from: terraform output -raw github_actions_role_arn"
+            echo "Or set variable AWS_USE_STATIC_CREDS=true and add IAM user access key secrets."
+            exit 1
+          fi
+          echo "Using OIDC (role-to-assume). Ensure terraform apply created the GitHub OIDC provider in this AWS account."
+        fi
     
-    - name: Configure AWS credentials
+    - name: Configure AWS credentials (OIDC)
+      if: ${{ vars.AWS_USE_STATIC_CREDS != 'true' }}
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        # Required GitHub Secret (Settings > Secrets and variables > Actions > Secrets):
-        # - AWS_ROLE_TO_ASSUME: ARN from terraform output github_actions_role_arn
-        #   Get it with: terraform output github_actions_role_arn
         role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
         aws-region: ${{ vars.AWS_REGION }}
-        # OIDC configuration
         role-session-name: GitHubActions-${{ github.run_id }}
+
+    - name: Configure AWS credentials (IAM user)
+      if: ${{ vars.AWS_USE_STATIC_CREDS == 'true' }}
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
     
     - name: Login to Amazon ECR
       id: login-ecr
