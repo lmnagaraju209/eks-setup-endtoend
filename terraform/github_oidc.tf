@@ -5,6 +5,15 @@
 
 locals {
   github_repo_full = (var.github_org != "" && var.github_repo != "") ? "${var.github_org}/${var.github_repo}" : ""
+
+  # GitHub may return either of two intermediate certs; IAM needs both thumbprints.
+  # https://github.blog/changelog/2023-06-27-github-actions-update-on-oidc-integration-with-aws/
+  github_actions_tls_thumbprint = lower(replace(data.tls_certificate.github_actions.certificates[0].sha1_fingerprint, ":", ""))
+  github_actions_oidc_thumbprints = distinct([
+    local.github_actions_tls_thumbprint,
+    "6938fd4d98bab03faadb97b34396831e3780aea1",
+    "1c58a3a8518e8759bf075b76b750d4f2df264fcd",
+  ])
 }
 
 data "aws_iam_openid_connect_provider" "github" {
@@ -21,7 +30,7 @@ data "tls_certificate" "github_actions" {
 resource "aws_iam_openid_connect_provider" "github_actions" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.github_actions.certificates[0].sha1_fingerprint]
+  thumbprint_list = local.github_actions_oidc_thumbprints
 
   tags = merge(var.tags, { Name = "${var.project_name}-github-oidc" })
 }

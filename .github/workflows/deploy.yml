@@ -9,8 +9,11 @@ name: CI/CD - Build, Push to ECR, Update Helm Values
 #       This creates IAM > Identity providers > token.actions.githubusercontent.com
 #       and the role from: terraform output -raw github_actions_role_arn
 #    3. GitHub repo > Settings > Secrets > Actions: add AWS_ROLE_TO_ASSUME = that ARN.
-#    If you see "No OpenIDConnect provider found ... token.actions.githubusercontent.com",
-#    Terraform has not created the provider in this account yet (or you are using the wrong account).
+#    If you see "No OpenIDConnect provider found ... token.actions.githubusercontent.com":
+#    - Log into IAM in the SAME account as the digits in AWS_ROLE_TO_ASSUME (arn:aws:iam::ACCOUNT:role/...).
+#      It is NOT the EKS cluster OIDC provider (different URL).
+#    - GitHub Variables > AWS_ACCOUNT_ID must match that ACCOUNT.
+#    - Run: terraform apply && terraform output github_oidc_provider_arn
 #
 # B) Static IAM user (temporary): Variables > New variable > AWS_USE_STATIC_CREDS = true
 #    and Secrets > AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY for an IAM user that can push to ECR.
@@ -78,6 +81,25 @@ jobs:
           fi
           echo "Using OIDC (role-to-assume). Ensure terraform apply created the GitHub OIDC provider in this AWS account."
         fi
+
+    - name: Verify role ARN account matches AWS_ACCOUNT_ID
+      if: ${{ vars.AWS_USE_STATIC_CREDS != 'true' }}
+      env:
+        ROLE_ARN: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        EXPECT_ACCOUNT: ${{ vars.AWS_ACCOUNT_ID }}
+      run: |
+        set -e
+        if [[ ! "$ROLE_ARN" =~ ^arn:aws:iam::[0-9]{12}:role/ ]]; then
+          echo "::error::AWS_ROLE_TO_ASSUME must look like arn:aws:iam::123456789012:role/name"
+          exit 1
+        fi
+        ROLE_ACCOUNT=$(echo "$ROLE_ARN" | cut -d: -f5)
+        if [ "$ROLE_ACCOUNT" != "$EXPECT_ACCOUNT" ]; then
+          echo "::error::AWS_ROLE_TO_ASSUME is in AWS account $ROLE_ACCOUNT but GitHub variable AWS_ACCOUNT_ID is $EXPECT_ACCOUNT."
+          echo "STS looks for the GitHub OIDC provider in the ROLE's account. Fix the mismatch (or log into the wrong AWS console)."
+          exit 1
+        fi
+        echo "OIDC pre-check: role account $ROLE_ACCOUNT matches AWS_ACCOUNT_ID."
     
     - name: Configure AWS credentials (OIDC)
       if: ${{ vars.AWS_USE_STATIC_CREDS != 'true' }}
